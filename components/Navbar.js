@@ -49,24 +49,4 @@ export default function Navbar() {
           href={link.href}
           style={{
             fontSize: '14px',
-            fontWeight: pathname === link.href ? 600 : 400,
-            color: pathname === link.href ? '#534AB7' : '#555',
-            borderBottom: pathname === link.href ? '2px solid #534AB7' : '2px solid transparent',
-            paddingBottom: '2px',
-          }}
-        >
-          {link.label}
-        </a>
-      ))}
-      {user ? (
-        <button onClick={logout} className="btn btn-outline" style={{ fontSize: '13px', padding: '6px 14px' }}>
-          Logout
-        </button>
-      ) : (
-        <a href="/login" className="btn btn-primary" style={{ fontSize: '13px', padding: '6px 14px' }}>
-          Login
-        </a>
-      )}
-    </nav>
-  )
-}
+            fontWeight: pathname === link.h
