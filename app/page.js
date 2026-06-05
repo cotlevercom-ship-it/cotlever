@@ -4,9 +4,7 @@ import Navbar from '@/components/Navbar'
 import { useEffect, useRef, useState } from 'react'
 
 export default function Home() {
-  const heroRef = useRef(null)
-  const imageRef = useRef(null)
-  const textRef = useRef(null)
+  const canvasRef = useRef(null)
   const [scrollY, setScrollY] = useState(0)
   const [mounted, setMounted] = useState(false)
 
@@ -17,16 +15,137 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const imageTranslateY = scrollY * 0.3
-  const textTranslateY = scrollY * -0.15
-  const opacity = Math.max(0, 1 - scrollY / 400)
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    let animId
+
+    const resize = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    const STAR_COUNT = 600
+    const stars = Array.from({ length: STAR_COUNT }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 1.5 + 0.2,
+      opacity: Math.random() * 0.8 + 0.2,
+      speed: Math.random() * 0.3 + 0.05,
+      twinkle: Math.random() * Math.PI * 2,
+    }))
+
+    const DUST_COUNT = 120
+    const dust = Array.from({ length: DUST_COUNT }, () => {
+      const angle = Math.random() * Math.PI * 2
+      const radius = Math.random() * 280 + 40
+      return {
+        angle,
+        radius,
+        size: Math.random() * 2.5 + 0.5,
+        opacity: Math.random() * 0.5 + 0.1,
+        speed: (Math.random() * 0.0003 + 0.0001) * (Math.random() > 0.5 ? 1 : -1),
+        color: Math.random() > 0.5 ? '180,160,255' : '100,180,255',
+      }
+    })
+
+    let frame = 0
+
+    const draw = () => {
+      frame++
+      const cx = canvas.width / 2
+      const cy = canvas.height / 2
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = '#000005'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, 320)
+      grd.addColorStop(0, 'rgba(80, 40, 160, 0.18)')
+      grd.addColorStop(0.4, 'rgba(40, 20, 100, 0.08)')
+      grd.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = grd
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      const grd2 = ctx.createRadialGradient(cx - 80, cy + 30, 0, cx - 80, cy + 30, 200)
+      grd2.addColorStop(0, 'rgba(30, 80, 180, 0.12)')
+      grd2.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = grd2
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      dust.forEach(d => {
+        d.angle += d.speed
+        const x = cx + Math.cos(d.angle) * d.radius
+        const y = cy + Math.sin(d.angle) * d.radius * 0.38
+        ctx.beginPath()
+        ctx.arc(x, y, d.size, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(${d.color}, ${d.opacity})`
+        ctx.fill()
+      })
+
+      stars.forEach(s => {
+        s.x -= s.speed
+        if (s.x < 0) {
+          s.x = canvas.width
+          s.y = Math.random() * canvas.height
+        }
+        s.twinkle += 0.02
+        const twinkleOpacity = s.opacity * (0.7 + 0.3 * Math.sin(s.twinkle))
+
+        if (s.size > 1) {
+          const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.size * 3)
+          glow.addColorStop(0, `rgba(200,220,255,${twinkleOpacity * 0.4})`)
+          glow.addColorStop(1, 'rgba(0,0,0,0)')
+          ctx.fillStyle = glow
+          ctx.beginPath()
+          ctx.arc(s.x, s.y, s.size * 3, 0, Math.PI * 2)
+          ctx.fill()
+        }
+
+        ctx.beginPath()
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(220,230,255,${twinkleOpacity})`
+        ctx.fill()
+      })
+
+      if (frame % 180 === 0) {
+        const sx = Math.random() * canvas.width
+        const sy = Math.random() * canvas.height * 0.5
+        ctx.beginPath()
+        ctx.moveTo(sx, sy)
+        ctx.lineTo(sx + 80, sy + 20)
+        const shootGrd = ctx.createLinearGradient(sx, sy, sx + 80, sy + 20)
+        shootGrd.addColorStop(0, 'rgba(255,255,255,0)')
+        shootGrd.addColorStop(0.5, 'rgba(255,255,255,0.8)')
+        shootGrd.addColorStop(1, 'rgba(255,255,255,0)')
+        ctx.strokeStyle = shootGrd
+        ctx.lineWidth = 1.5
+        ctx.stroke()
+      }
+
+      animId = requestAnimationFrame(draw)
+    }
+
+    draw()
+
+    return () => {
+      cancelAnimationFrame(animId)
+      window.removeEventListener('resize', resize)
+    }
+  }, [])
+
+  const textTranslateY = scrollY * -0.12
+  const opacity = Math.max(0, 1 - scrollY / 500)
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500&family=Barlow+Condensed:wght@300;400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400&family=Barlow+Condensed:wght@300;400&display=swap');
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
           background: #000;
@@ -35,445 +154,392 @@ export default function Home() {
           overflow-x: hidden;
         }
 
-        .hero-section {
+        .hero {
           position: relative;
           width: 100%;
           height: 100vh;
           overflow: hidden;
-          background: #000;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
         }
 
-        .star-field {
+        canvas {
           position: absolute;
           inset: 0;
-          background:
-            radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
-            radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
-            radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
-            radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
-            radial-gradient(1px 1px at 70% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
-            radial-gradient(1px 1px at 80% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
-            radial-gradient(1px 1px at 90% 15%, rgba(255,255,255,0.5) 0%, transparent 100%),
-            radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
-            radial-gradient(1px 1px at 60% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
-            radial-gradient(1px 1px at 35% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
-            radial-gradient(2px 2px at 50% 25%, rgba(255,255,255,0.3) 0%, transparent 100%),
-            radial-gradient(1.5px 1.5px at 75% 55%, rgba(255,255,255,0.4) 0%, transparent 100%),
-            radial-gradient(1px 1px at 20% 45%, rgba(255,255,255,0.35) 0%, transparent 100%),
-            radial-gradient(1px 1px at 85% 30%, rgba(255,255,255,0.45) 0%, transparent 100%),
-            radial-gradient(1px 1px at 45% 90%, rgba(255,255,255,0.3) 0%, transparent 100%);
           z-index: 0;
         }
 
-        .divider-top {
-          position: absolute;
-          top: 22%;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 80%;
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          z-index: 10;
-        }
-
-        .divider-line {
-          flex: 1;
-          height: 1px;
-          background: rgba(255,255,255,0.35);
-        }
-
-        .divider-label {
-          font-family: 'Barlow Condensed', sans-serif;
-          font-size: 11px;
-          font-weight: 300;
-          letter-spacing: 0.25em;
-          color: rgba(255,255,255,0.5);
-          white-space: nowrap;
-          text-transform: uppercase;
-        }
-
-        .hero-title-wrap {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
+        .hero-content {
+          position: relative;
           z-index: 5;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
           text-align: center;
-          width: 100%;
           pointer-events: none;
           will-change: transform, opacity;
         }
 
+        .top-label {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-size: 11px;
+          letter-spacing: 0.35em;
+          text-transform: uppercase;
+          color: rgba(180,160,255,0.6);
+          margin-bottom: 20px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+
+        .top-label::before, .top-label::after {
+          content: '';
+          display: block;
+          width: 50px;
+          height: 1px;
+          background: rgba(180,160,255,0.35);
+        }
+
         .hero-title {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(100px, 18vw, 260px);
-          line-height: 0.88;
-          letter-spacing: 0.02em;
+          font-size: clamp(90px, 16vw, 220px);
+          line-height: 0.9;
+          letter-spacing: 0.04em;
           color: #fff;
+          text-shadow: 0 0 80px rgba(140,100,255,0.4), 0 0 160px rgba(80,60,200,0.2);
           user-select: none;
-          mix-blend-mode: screen;
+        }
+
+        .hero-tagline {
+          margin-top: 24px;
+          font-family: 'Barlow', sans-serif;
+          font-size: 14px;
+          font-weight: 300;
+          letter-spacing: 0.08em;
+          color: rgba(200,190,255,0.55);
+          line-height: 1.7;
         }
 
         .hero-image-wrap {
           position: absolute;
-          bottom: -5%;
+          bottom: -8%;
           left: 50%;
           transform: translateX(-50%);
           z-index: 3;
-          width: min(900px, 95vw);
-          will-change: transform;
+          width: min(860px, 90vw);
+          pointer-events: none;
         }
 
         .hero-image-wrap img {
           width: 100%;
           height: auto;
           display: block;
-          filter: drop-shadow(0 -40px 80px rgba(255,255,255,0.08));
+          filter: drop-shadow(0 -30px 60px rgba(120,80,255,0.15));
+          animation: floatUp 1.6s cubic-bezier(0.16,1,0.3,1) forwards;
+          opacity: 0;
         }
 
-        .bottom-vignette {
+        @keyframes floatUp {
+          from { opacity: 0; transform: translateY(60px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .bottom-fade {
           position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 35%;
+          bottom: 0; left: 0; right: 0;
+          height: 40%;
           background: linear-gradient(to top, #000 0%, transparent 100%);
           z-index: 4;
           pointer-events: none;
         }
 
-        .divider-bottom {
+        .divider {
           position: absolute;
-          bottom: 18%;
+          bottom: 19%;
           left: 50%;
           transform: translateX(-50%);
-          width: 80%;
+          width: 75%;
           height: 1px;
-          background: rgba(255,255,255,0.2);
+          background: rgba(255,255,255,0.1);
           z-index: 10;
         }
 
-        .hero-subtitle-bar {
+        .info-bar {
           position: absolute;
-          bottom: 20%;
+          bottom: 20.5%;
           left: 50%;
           transform: translateX(-50%);
-          z-index: 10;
-          width: 80%;
+          width: 75%;
           display: flex;
-          align-items: center;
           justify-content: space-between;
+          align-items: flex-end;
+          z-index: 10;
           pointer-events: none;
         }
 
-        .sub-label {
+        .info-item { display: flex; flex-direction: column; gap: 4px; }
+        .info-item.right { text-align: right; }
+
+        .info-label {
           font-family: 'Barlow Condensed', sans-serif;
-          font-size: 10px;
-          font-weight: 400;
-          letter-spacing: 0.2em;
+          font-size: 9px;
+          letter-spacing: 0.25em;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.4);
-          margin-bottom: 4px;
+          color: rgba(255,255,255,0.3);
         }
 
-        .sub-value {
+        .info-value {
           font-family: 'Barlow Condensed', sans-serif;
-          font-size: 20px;
+          font-size: 16px;
           font-weight: 300;
+          color: rgba(255,255,255,0.75);
           letter-spacing: 0.05em;
-          color: rgba(255,255,255,0.9);
         }
 
-        .tagline-text {
-          font-family: 'Barlow', sans-serif;
-          font-size: 13px;
-          font-weight: 400;
-          line-height: 1.7;
-          color: rgba(255,255,255,0.55);
-          letter-spacing: 0.02em;
-          text-align: center;
-        }
-
-        .cta-btn {
+        .cta-wrap {
           position: absolute;
-          bottom: 6%;
+          bottom: 5.5%;
           left: 50%;
           transform: translateX(-50%);
           z-index: 10;
-          border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .cta-btn {
+          border: 1px solid rgba(180,160,255,0.35);
           background: transparent;
-          color: #fff;
+          color: rgba(200,190,255,0.9);
           font-family: 'Barlow Condensed', sans-serif;
           font-size: 11px;
           font-weight: 400;
           letter-spacing: 0.3em;
           text-transform: uppercase;
-          padding: 14px 36px;
+          padding: 13px 40px;
           cursor: pointer;
-          transition: background 0.3s, border-color 0.3s;
+          transition: all 0.3s;
           white-space: nowrap;
+          pointer-events: all;
         }
         .cta-btn:hover {
-          background: rgba(255,255,255,0.08);
-          border-color: rgba(255,255,255,0.7);
+          background: rgba(140,100,255,0.12);
+          border-color: rgba(180,160,255,0.7);
+          color: #fff;
         }
 
-        .sound-note {
+        .scroll-hint {
           position: absolute;
           bottom: 1.5%;
           left: 50%;
           transform: translateX(-50%);
           font-family: 'Barlow Condensed', sans-serif;
-          font-size: 10px;
-          letter-spacing: 0.25em;
-          color: rgba(255,255,255,0.25);
+          font-size: 9px;
+          letter-spacing: 0.3em;
+          color: rgba(255,255,255,0.2);
           text-transform: uppercase;
           z-index: 10;
           white-space: nowrap;
         }
 
-        .fade-in {
-          opacity: 0;
-          animation: fadeUp 1s ease forwards;
-        }
-        .fade-in-1 { animation-delay: 0.2s; }
-        .fade-in-2 { animation-delay: 0.5s; }
-        .fade-in-3 { animation-delay: 0.8s; }
-        .fade-in-4 { animation-delay: 1.1s; }
+        .fade-in { opacity: 0; animation: fadeIn 1s ease forwards; }
+        .d1 { animation-delay: 0.2s; }
+        .d2 { animation-delay: 0.5s; }
+        .d3 { animation-delay: 0.8s; }
+        .d4 { animation-delay: 1s; }
+        .d5 { animation-delay: 1.2s; }
+        .d6 { animation-delay: 1.4s; }
 
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .image-rise {
-          opacity: 0;
-          animation: riseUp 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          animation-delay: 0.3s;
-        }
-        @keyframes riseUp {
-          from { opacity: 0; transform: translateX(-50%) translateY(80px); }
-          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
 
-        .section-dark {
-          background: #050505;
-          padding: 120px 0;
+        .section {
+          background: #03020a;
+          padding: 110px 0;
+          border-top: 1px solid rgba(255,255,255,0.04);
         }
 
-        .section-inner {
-          max-width: 1100px;
-          margin: 0 auto;
-          padding: 0 40px;
-        }
+        .inner { max-width: 1080px; margin: 0 auto; padding: 0 40px; }
 
-        .section-tag {
+        .s-tag {
           font-family: 'Barlow Condensed', sans-serif;
-          font-size: 11px;
+          font-size: 10px;
           letter-spacing: 0.3em;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.35);
-          margin-bottom: 24px;
-        }
-
-        .section-heading {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(48px, 6vw, 90px);
-          line-height: 0.95;
-          color: #fff;
-          margin-bottom: 32px;
-        }
-
-        .section-body {
-          font-size: 15px;
-          font-weight: 300;
-          line-height: 1.8;
-          color: rgba(255,255,255,0.55);
-          max-width: 560px;
-        }
-
-        .feature-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 1px;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.08);
-          margin-top: 80px;
-        }
-
-        .feature-card {
-          background: #050505;
-          padding: 48px 40px;
-          transition: background 0.3s;
-        }
-        .feature-card:hover { background: #0d0d0d; }
-
-        .feature-number {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 48px;
-          color: rgba(255,255,255,0.12);
+          color: rgba(160,140,255,0.5);
           margin-bottom: 20px;
         }
 
-        .feature-title {
-          font-family: 'Barlow Condensed', sans-serif;
-          font-size: 18px;
-          font-weight: 400;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
+        .s-heading {
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: clamp(44px, 6vw, 86px);
+          line-height: 0.95;
           color: #fff;
-          margin-bottom: 12px;
+          margin-bottom: 28px;
         }
 
-        .feature-desc {
+        .s-body {
+          font-size: 14px;
+          font-weight: 300;
+          line-height: 1.85;
+          color: rgba(255,255,255,0.45);
+          max-width: 520px;
+        }
+
+        .cards {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.05);
+          margin-top: 70px;
+        }
+
+        .card { background: #03020a; padding: 44px 36px; transition: background 0.3s; }
+        .card:hover { background: #07060f; }
+
+        .card-num {
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: 44px;
+          color: rgba(140,120,255,0.15);
+          margin-bottom: 16px;
+        }
+
+        .card-title {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-size: 17px;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: rgba(200,190,255,0.85);
+          margin-bottom: 10px;
+        }
+
+        .card-desc {
           font-size: 13px;
           font-weight: 300;
-          line-height: 1.7;
-          color: rgba(255,255,255,0.45);
+          line-height: 1.75;
+          color: rgba(255,255,255,0.38);
         }
 
-        .join-section {
+        .join {
           background: #000;
-          padding: 160px 0;
+          padding: 140px 0;
           text-align: center;
-          border-top: 1px solid rgba(255,255,255,0.06);
+          border-top: 1px solid rgba(255,255,255,0.04);
         }
 
-        .join-eyebrow {
+        .join-eye {
           font-family: 'Barlow Condensed', sans-serif;
-          font-size: 11px;
+          font-size: 10px;
           letter-spacing: 0.3em;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.3);
-          margin-bottom: 32px;
+          color: rgba(160,140,255,0.4);
+          margin-bottom: 28px;
         }
 
         .join-heading {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(60px, 8vw, 120px);
+          font-size: clamp(56px, 8vw, 110px);
           line-height: 0.9;
           color: #fff;
-          margin-bottom: 48px;
+          margin-bottom: 44px;
+          text-shadow: 0 0 60px rgba(120,80,255,0.25);
         }
 
         .join-btn {
-          border: 1px solid rgba(255,255,255,0.5);
+          border: 1px solid rgba(180,160,255,0.4);
           background: transparent;
-          color: #fff;
+          color: rgba(200,190,255,0.85);
           font-family: 'Barlow Condensed', sans-serif;
-          font-size: 12px;
-          font-weight: 400;
+          font-size: 11px;
           letter-spacing: 0.3em;
           text-transform: uppercase;
-          padding: 18px 52px;
+          padding: 16px 48px;
           cursor: pointer;
-          transition: background 0.3s;
+          transition: all 0.3s;
         }
-        .join-btn:hover { background: rgba(255,255,255,0.07); }
+        .join-btn:hover {
+          background: rgba(140,100,255,0.1);
+          border-color: rgba(180,160,255,0.7);
+          color: #fff;
+        }
 
         @media (max-width: 768px) {
-          .feature-grid { grid-template-columns: 1fr; }
-          .hero-subtitle-bar { flex-direction: column; gap: 12px; }
+          .cards { grid-template-columns: 1fr; }
+          .info-bar { display: none; }
         }
       `}</style>
 
       <Navbar />
 
-      {/* HERO */}
-      <section className="hero-section" ref={heroRef}>
-        <div className="star-field" />
-
-        <div className="divider-top fade-in fade-in-1">
-          <div className="divider-line" />
-          <span className="divider-label">Business Community</span>
-          <div className="divider-line" />
-        </div>
+      <section className="hero">
+        <canvas ref={canvasRef} />
 
         <div
-          className="hero-title-wrap fade-in fade-in-2"
-          ref={textRef}
-          style={mounted ? {
-            transform: `translate(-50%, calc(-50% + ${textTranslateY}px))`,
-            opacity,
-          } : {}}
+          className="hero-content"
+          style={mounted ? { transform: `translateY(${textTranslateY}px)`, opacity } : {}}
         >
-          <h1 className="hero-title">COT LEVER</h1>
+          <p className="top-label fade-in d1">Business Community</p>
+          <h1 className="hero-title fade-in d2">COT LEVER</h1>
+          <p className="hero-tagline fade-in d3">
+            Connect. Collaborate. Grow.<br />
+            Where ambitious businesses find their edge.
+          </p>
         </div>
 
-        <div
-          className="hero-image-wrap image-rise"
-          ref={imageRef}
-          style={mounted ? {
-            transform: `translateX(-50%) translateY(${imageTranslateY}px)`,
-          } : {}}
-        >
+        <div className="hero-image-wrap">
           <img src="/hero_clean.png" alt="Cot Lever" />
         </div>
 
-        <div className="bottom-vignette" />
-        <div className="divider-bottom" />
+        <div className="bottom-fade" />
+        <div className="divider fade-in d4" />
 
-        <div
-          className="hero-subtitle-bar fade-in fade-in-3"
-          style={mounted ? { opacity } : {}}
-        >
-          <div>
-            <p className="sub-label">Community</p>
-            <p className="sub-value">Cot Lever</p>
+        <div className="info-bar fade-in d4" style={mounted ? { opacity } : {}}>
+          <div className="info-item">
+            <span className="info-label">Community</span>
+            <span className="info-value">Cot Lever</span>
           </div>
-          <div>
-            <p className="tagline-text">
-              Connect with forward-thinking businesses.<br />
-              Build partnerships that move the world forward.
-            </p>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <p className="sub-label">Est.</p>
-            <p className="sub-value">2024</p>
+          <div className="info-item right">
+            <span className="info-label">Est.</span>
+            <span className="info-value">2024</span>
           </div>
         </div>
 
-        <button className="cta-btn fade-in fade-in-4">
-          Join the Community
-        </button>
+        <div className="cta-wrap fade-in d5">
+          <button className="cta-btn">Join the Community</button>
+        </div>
 
-        <p className="sound-note">Where businesses grow together</p>
+        <p className="scroll-hint fade-in d6">Scroll to explore</p>
       </section>
 
-      {/* ABOUT */}
-      <section className="section-dark">
-        <div className="section-inner">
-          <p className="section-tag">About</p>
-          <h2 className="section-heading">A New Era<br />Of Business</h2>
-          <p className="section-body">
+      <section className="section">
+        <div className="inner">
+          <p className="s-tag">About</p>
+          <h2 className="s-heading">A New Era<br />Of Business</h2>
+          <p className="s-body">
             Cot Lever is more than a community — it&apos;s a platform where ambitious entrepreneurs,
             seasoned professionals, and innovative companies come together to forge meaningful
             connections, share knowledge, and unlock new opportunities.
           </p>
-          <div className="feature-grid">
+          <div className="cards">
             {[
-              { n: '01', title: 'Connect', desc: 'Build real relationships with business leaders and entrepreneurs who share your vision and drive.' },
-              { n: '02', title: 'Collaborate', desc: 'Find the right partners, investors, and collaborators to bring your next big idea to life.' },
-              { n: '03', title: 'Grow', desc: 'Access resources, events, and a network designed to accelerate your business at every stage.' },
-            ].map(f => (
-              <div className="feature-card" key={f.n}>
-                <p className="feature-number">{f.n}</p>
-                <p className="feature-title">{f.title}</p>
-                <p className="feature-desc">{f.desc}</p>
+              { n: '01', t: 'Connect', d: 'Build real relationships with business leaders and entrepreneurs who share your vision and drive.' },
+              { n: '02', t: 'Collaborate', d: 'Find the right partners, investors, and collaborators to bring your next big idea to life.' },
+              { n: '03', t: 'Grow', d: 'Access resources, events, and a network designed to accelerate your business at every stage.' },
+            ].map(c => (
+              <div className="card" key={c.n}>
+                <p className="card-num">{c.n}</p>
+                <p className="card-title">{c.t}</p>
+                <p className="card-desc">{c.d}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* JOIN */}
-      <section className="join-section">
-        <p className="join-eyebrow">Ready to scale?</p>
+      <section className="join">
+        <p className="join-eye">Ready to scale?</p>
         <h2 className="join-heading">Be Part Of<br />Something Big</h2>
         <button className="join-btn">Get Started Today</button>
       </section>
