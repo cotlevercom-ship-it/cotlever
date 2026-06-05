@@ -43,10 +43,44 @@ export default function Navbar() {
       <a href="/" style={{ fontWeight: 700, fontSize: '18px', color: '#534AB7', marginRight: 'auto' }}>
         Cotlever
       </a>
+
       {user && links.map(link => (
         
           key={link.href}
           href={link.href}
           style={{
             fontSize: '14px',
-            fontWeight: pathname === link.h
+            fontWeight: pathname === link.href ? 700 : 400,
+            color: pathname === link.href ? '#534AB7' : '#333',
+            textDecoration: 'none',
+          }}
+        >
+          {link.label}
+        </a>
+      ))}
+
+      {user ? (
+        <button onClick={logout} style={{
+          fontSize: '14px',
+          background: 'none',
+          border: '1px solid #534AB7',
+          color: '#534AB7',
+          padding: '6px 14px',
+          borderRadius: '6px',
+          cursor: 'pointer',
+        }}>
+          Logout
+        </button>
+      ) : (
+        <a href="/login" style={{
+          fontSize: '14px',
+          color: '#534AB7',
+          textDecoration: 'none',
+          fontWeight: 600,
+        }}>
+          Login
+        </a>
+      )}
+    </nav>
+  )
+}
