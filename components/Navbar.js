@@ -45,7 +45,7 @@ export default function Navbar() {
       </a>
 
       {user && links.map(link => (
-        
+            <a
           key={link.href}
           href={link.href}
           style={{
