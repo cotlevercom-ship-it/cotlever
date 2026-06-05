@@ -1,12 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 export default function Navbar() {
   const [user, setUser] = useState(null)
   const router = useRouter()
-  const pathname = usePathname()
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data?.user))
@@ -24,20 +23,35 @@ export default function Navbar() {
   return (
     <>
       <style>{`
-        @keyframes logoSlide {
-          0% { opacity: 0; transform: translateY(-8px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes letterPop {
-          0% { opacity: 0; transform: translateY(6px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        .logo-letter {
+        .logo-text {
+          font-size: 22px;
+          font-weight: 800;
+          letter-spacing: 3px;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          background-image: linear-gradient(90deg, #111 0%, #111 100%);
           display: inline-block;
-          animation: letterPop 0.4s ease forwards;
-          opacity: 0;
+        }
+        .logo-gleam {
+          position: absolute;
+          inset: 0;
+          font-size: 22px;
+          font-weight: 800;
+          letter-spacing: 3px;
+          background-image: linear-gradient(90deg, transparent 0%, transparent 30%, #ff0000 45%, #ff6060 50%, #ff0000 55%, transparent 70%, transparent 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          background-size: 300% 100%;
+          animation: gleam 4.5s ease-in-out infinite;
+        }
+        @keyframes gleam {
+          0% { background-position: 0% 0; }
+          100% { background-position: 100% 0; }
         }
       `}</style>
+
       <nav style={{
         background: '#fff',
         borderBottom: '1px solid #eee',
@@ -51,20 +65,10 @@ export default function Navbar() {
         zIndex: 100,
       }}>
         <a href="/" style={{ textDecoration: 'none' }}>
-          {'Cotlever'.split('').map((letter, i) => (
-            <span
-              key={i}
-              className="logo-letter"
-              style={{
-                animationDelay: `${i * 0.06}s`,
-                fontSize: '20px',
-                fontWeight: 700,
-                color: '#534AB7',
-              }}
-            >
-              {letter}
-            </span>
-          ))}
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <span className="logo-text">COT LEVER</span>
+            <span className="logo-gleam">COT LEVER</span>
+          </div>
         </a>
 
         {user ? (
