@@ -15,7 +15,7 @@ export default function Home() {
           inset: 0,
           backgroundImage: 'url(/hero_clean.png)',
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundPosition: 'center top',
         }} />
       </main>
     </>
