@@ -203,7 +203,7 @@ export default function Navbar() {
         {/* Nav Links */}
         <div className="nav-links">
           {links.map(link => (
-            
+            <a
               key={link.href}
               href={link.href}
               className={`nav-link ${pathname === link.href ? 'active' : ''}`}
