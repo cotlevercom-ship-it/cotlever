@@ -172,7 +172,6 @@ export default function Navbar() {
         }
         .avatar-menu a:hover { background: rgba(255,255,255,0.08); color: #fff; }
         .avatar-menu .logout { color: #e84040; }
-
         .hamburger {
           display: none;
           flex-direction: column;
@@ -235,13 +234,11 @@ export default function Navbar() {
           text-align: left;
           width: 100%;
         }
-
         .nav-right {
           display: flex;
           align-items: center;
           gap: 10px;
         }
-
         @media (max-width: 768px) {
           .navbar { padding: 14px 16px; }
           .nav-links { display: none; }
@@ -255,7 +252,6 @@ export default function Navbar() {
       `}</style>
 
       <nav className="navbar">
-        {/* Logo */}
         <a href="/" style={{ textDecoration: 'none' }}>
           <div style={{ position: 'relative', display: 'inline-block' }}>
             <div className="logo-wrapper">
@@ -268,10 +264,9 @@ export default function Navbar() {
           </div>
         </a>
 
-        {/* Desktop links */}
         <div className="nav-links">
           {links.map(link => (
-            
+            <a
               key={link.href}
               href={link.href}
               className={`nav-link ${pathname === link.href ? 'active' : ''}`}
@@ -281,24 +276,18 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Right side */}
         <div className="nav-right">
           {user ? (
-            <>
-              <div className="avatar desktop-auth">
-                {initials}
-                <div className="avatar-menu">
-                  <a href="/profile">Profile</a>
-                  <a className="logout" onClick={handleLogout}>Logout</a>
-                </div>
+            <div className="avatar desktop-auth">
+              {initials}
+              <div className="avatar-menu">
+                <a href="/profile">Profile</a>
+                <a className="logout" onClick={handleLogout}>Logout</a>
               </div>
-              <div className="avatar" style={{ display: 'none' }} id="mobile-avatar">{initials}</div>
-            </>
+            </div>
           ) : (
             <a href="/login" className="login-btn desktop-auth">Login</a>
           )}
-
-          {/* Hamburger */}
           <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="menu">
             <span style={{ transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none' }} />
             <span style={{ opacity: menuOpen ? 0 : 1 }} />
@@ -307,10 +296,9 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile menu */}
       <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
         {links.map(link => (
-          
+          <a
             key={link.href}
             href={link.href}
             className={`mobile-link ${pathname === link.href ? 'active' : ''}`}
