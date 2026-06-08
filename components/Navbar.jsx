@@ -14,6 +14,7 @@ const links = [
 export default function Navbar() {
   const [user, setUser] = useState(null)
   const [initials, setInitials] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -25,7 +26,6 @@ export default function Navbar() {
         setInitials(name.slice(0, 2).toUpperCase())
       }
     })
-
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user
       setUser(u || null)
@@ -34,9 +34,12 @@ export default function Navbar() {
         setInitials(name.slice(0, 2).toUpperCase())
       }
     })
-
     return () => listener.subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -98,7 +101,7 @@ export default function Navbar() {
           top: 0;
           width: 100%;
           z-index: 100;
-          background: rgba(0, 0, 10, 0.6);
+          background: rgba(0, 0, 10, 0.85);
           backdrop-filter: blur(12px);
           border-bottom: 0.5px solid rgba(255,255,255,0.08);
         }
@@ -115,14 +118,8 @@ export default function Navbar() {
           text-decoration: none;
           transition: color 0.2s, background 0.2s;
         }
-        .nav-link:hover {
-          color: #fff;
-          background: rgba(255,255,255,0.06);
-        }
-        .nav-link.active {
-          color: #fff;
-          background: rgba(255,255,255,0.1);
-        }
+        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.06); }
+        .nav-link.active { color: #fff; background: rgba(255,255,255,0.1); }
         .login-btn {
           font-size: 13px;
           color: rgba(255,255,255,0.7);
@@ -131,13 +128,10 @@ export default function Navbar() {
           border: 0.5px solid rgba(255,255,255,0.2);
           cursor: pointer;
           text-decoration: none;
-          transition: background 0.2s, color 0.2s;
           background: transparent;
+          transition: background 0.2s, color 0.2s;
         }
-        .login-btn:hover {
-          background: rgba(255,255,255,0.1);
-          color: #fff;
-        }
+        .login-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
         .avatar {
           width: 34px;
           height: 34px;
@@ -156,7 +150,7 @@ export default function Navbar() {
           position: absolute;
           top: 44px;
           right: 0;
-          background: rgba(10,10,30,0.95);
+          background: rgba(10,10,30,0.97);
           border: 0.5px solid rgba(255,255,255,0.12);
           border-radius: 10px;
           padding: 8px;
@@ -166,9 +160,7 @@ export default function Navbar() {
           gap: 4px;
           backdrop-filter: blur(12px);
         }
-        .avatar:hover .avatar-menu {
-          display: flex;
-        }
+        .avatar:hover .avatar-menu { display: flex; }
         .avatar-menu a {
           font-size: 13px;
           color: rgba(200,210,255,0.7);
@@ -176,13 +168,89 @@ export default function Navbar() {
           border-radius: 6px;
           text-decoration: none;
           transition: background 0.2s, color 0.2s;
+          cursor: pointer;
         }
-        .avatar-menu a:hover {
-          background: rgba(255,255,255,0.08);
+        .avatar-menu a:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .avatar-menu .logout { color: #e84040; }
+
+        .hamburger {
+          display: none;
+          flex-direction: column;
+          gap: 5px;
+          cursor: pointer;
+          padding: 4px;
+          background: none;
+          border: none;
+        }
+        .hamburger span {
+          display: block;
+          width: 20px;
+          height: 1.5px;
+          background: rgba(255,255,255,0.7);
+          border-radius: 2px;
+          transition: all 0.3s;
+        }
+        .mobile-menu {
+          display: none;
+          flex-direction: column;
+          position: fixed;
+          top: 57px;
+          left: 0;
+          width: 100%;
+          background: rgba(5,5,20,0.98);
+          border-bottom: 0.5px solid rgba(255,255,255,0.08);
+          z-index: 99;
+          padding: 8px 0;
+          backdrop-filter: blur(12px);
+        }
+        .mobile-menu.open { display: flex; }
+        .mobile-link {
+          display: block;
+          padding: 13px 24px;
+          font-size: 14px;
+          color: rgba(200,210,255,0.6);
+          text-decoration: none;
+          border-left: 2px solid transparent;
+          transition: all 0.2s;
+        }
+        .mobile-link:hover { color: #fff; background: rgba(255,255,255,0.04); }
+        .mobile-link.active {
           color: #fff;
+          border-left: 2px solid #534AB7;
+          background: rgba(83,74,183,0.08);
         }
-        .avatar-menu .logout {
+        .mobile-divider {
+          height: 0.5px;
+          background: rgba(255,255,255,0.06);
+          margin: 8px 0;
+        }
+        .mobile-logout {
+          display: block;
+          padding: 13px 24px;
+          font-size: 14px;
           color: #e84040;
+          cursor: pointer;
+          border: none;
+          background: none;
+          text-align: left;
+          width: 100%;
+        }
+
+        .nav-right {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+          .navbar { padding: 14px 16px; }
+          .nav-links { display: none; }
+          .hamburger { display: flex; }
+          .desktop-auth { display: none; }
+        }
+        @media (min-width: 769px) {
+          .mobile-menu { display: none !important; }
+          .hamburger { display: none; }
         }
       `}</style>
 
@@ -200,10 +268,10 @@ export default function Navbar() {
           </div>
         </a>
 
-        {/* Nav Links */}
+        {/* Desktop links */}
         <div className="nav-links">
           {links.map(link => (
-            <a
+            
               key={link.href}
               href={link.href}
               className={`nav-link ${pathname === link.href ? 'active' : ''}`}
@@ -213,19 +281,57 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Right: Login or Avatar */}
-        {user ? (
-          <div className="avatar">
-            {initials}
-            <div className="avatar-menu">
-              <a href="/profile">Profile</a>
-              <a className="logout" onClick={handleLogout} style={{ cursor: 'pointer' }}>Logout</a>
-            </div>
-          </div>
-        ) : (
-          <a href="/login" className="login-btn">Login</a>
-        )}
+        {/* Right side */}
+        <div className="nav-right">
+          {user ? (
+            <>
+              <div className="avatar desktop-auth">
+                {initials}
+                <div className="avatar-menu">
+                  <a href="/profile">Profile</a>
+                  <a className="logout" onClick={handleLogout}>Logout</a>
+                </div>
+              </div>
+              <div className="avatar" style={{ display: 'none' }} id="mobile-avatar">{initials}</div>
+            </>
+          ) : (
+            <a href="/login" className="login-btn desktop-auth">Login</a>
+          )}
+
+          {/* Hamburger */}
+          <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="menu">
+            <span style={{ transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none' }} />
+            <span style={{ opacity: menuOpen ? 0 : 1 }} />
+            <span style={{ transform: menuOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none' }} />
+          </button>
+        </div>
       </nav>
+
+      {/* Mobile menu */}
+      <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
+        {links.map(link => (
+          
+            key={link.href}
+            href={link.href}
+            className={`mobile-link ${pathname === link.href ? 'active' : ''}`}
+          >
+            {link.label}
+          </a>
+        ))}
+        {user && (
+          <>
+            <div className="mobile-divider" />
+            <a href="/profile" className="mobile-link">Profile</a>
+            <button className="mobile-logout" onClick={handleLogout}>Logout</button>
+          </>
+        )}
+        {!user && (
+          <>
+            <div className="mobile-divider" />
+            <a href="/login" className="mobile-link">Login</a>
+          </>
+        )}
+      </div>
     </>
   )
 }
