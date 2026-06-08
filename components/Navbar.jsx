@@ -12,10 +12,13 @@ export default function Navbar() {
           letter-spacing: 2px;
           font-family: inherit;
         }
-        .logo-cot { display: inline-block; color: #111; }
+        .logo-cot {
+          display: inline-block;
+          color: white;
+        }
         .logo-lever {
           display: inline-block;
-          color: #111;
+          color: white;
           animation: leverSlide 3s ease-in-out infinite;
           transform-origin: left center;
         }
@@ -45,19 +48,47 @@ export default function Navbar() {
           45%  { background-position: 50% 0; }
           100% { background-position: -100% 0; }
         }
+        .navbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 32px;
+          position: fixed;
+          top: 0;
+          width: 100%;
+          z-index: 100;
+        }
+        .login-btn {
+          color: white;
+          background: transparent;
+          border: 1px solid white;
+          padding: 8px 20px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+          text-decoration: none;
+        }
+        .login-btn:hover {
+          background: white;
+          color: black;
+        }
       `}</style>
 
-      <a href="/" style={{ textDecoration: 'none' }}>
-        <div style={{ position: 'relative', display: 'inline-block' }}>
-          <div className="logo-wrapper">
-            <span className="logo-cot">COT</span>
-            <span className="logo-lever">LEVER</span>
+      <nav className="navbar">
+        <a href="/" style={{ textDecoration: 'none' }}>
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <div className="logo-wrapper">
+              <span className="logo-cot">COT</span>
+              <span className="logo-lever">LEVER</span>
+            </div>
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+              <span className="logo-gleam">COTLEVER</span>
+            </div>
           </div>
-          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-            <span className="logo-gleam">COTLEVER</span>
-          </div>
-        </div>
-      </a>
+        </a>
+
+        <a href="/login" className="login-btn">Login</a>
+      </nav>
     </>
   )
 }
